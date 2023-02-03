@@ -14,36 +14,8 @@
 #include<conio.h>
 using namespace std;
 int pr[10010]={2},prcnt=1,show0=0;
-int num[10][10],score,n,achcnt,achpt,ach[1010];
+int num[10][10],score,n;
 int ad[10010],adcnt,eli[10010],elicnt;
-string chengjiu[25]={
-	"【2048·壹】合成数字32",
-	"【2048·贰】合成数字128",
-	"【2048·叁】合成数字512",
-	"【2048·肆】合成数字2048",
-	"【生根发芽】种子数量达到5",
-	"【茁壮成长】种子数量达到10",
-	"【参天大树】种子数量达到20",
-	"【初级玩家】在n<=5时得分达到100",
-	"【中级玩家】在n<=5时得分达到500",
-	"【高级玩家】在n<=5时得分达到1000",
-	"【超级玩家】在n<=5时得分达到2500",
-	"【另寻生路】在n=2时至少得到100分",
-	"【贪心不足】设置的n大于等于8",
-	"【质数·壹】得到10以上的质数",
-	"【质数·贰】得到50以上的质数",
-	"【质数·叁】得到100以上的质数",
-	"【质数·肆】得到200以上的质数",
-	"【质数消灭者·零】种子只剩1个质数且非2",
-	"【质数消灭者·壹】一次消除2个质数",
-	"【质数消灭者·贰】一次消除3个质数",
-	"【质数消灭者·叁】一次消除4个质数",
-	"【质数拯救者·壹】一次合成2个质数",
-	"【质数拯救者·贰】一次合成3个质数",
-	"【质数拯救者·叁】一次合成4个质数",
-	"【神秘成就】合成数字1534"
-};
-bool com[25]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 set<int>s;
 void setFontColor(int ForgC,int BackC){
 	WORD wColor=((BackC&0x0F)<<4)+(ForgC&0x0F);
@@ -82,96 +54,6 @@ int getMaxLen(){
 	}
 	return retval;
 }
-void Achievements(){
-	if (n<=5 && score>=100 && !com[7]){
-		com[7]=true;ach[++achcnt]=7;
-		achpt+=(int)round(16.0/n);
-	}
-	if (n<=5 && score>=500 && !com[8]){
-		com[8]=true;ach[++achcnt]=8;
-		achpt+=(int)round(64.0/n);
-	}
-	if (n<=5 && score>=1000 && !com[9]){
-		com[9]=true;ach[++achcnt]=9;
-		achpt+=(int)round(256.0/n);
-	}
-	if (n<=5 && score>=2500 && !com[10]){
-		com[10]=true;ach[++achcnt]=10;
-		achpt+=(int)round(1024.0/n);
-	}
-	if (prcnt>=5 && !com[4]){
-		com[4]=true;ach[++achcnt]=4;
-		achpt+=(int)round(64.0/n);
-	}
-	if (prcnt>=10 && !com[5]){
-		com[5]=true;ach[++achcnt]=5;
-		achpt+=(int)round(256.0/n);
-	}
-	if (prcnt>=20 && !com[6]){
-		com[6]=true;ach[++achcnt]=6;
-		achpt+=(int)round(1024.0/n);
-	}
-	if (prcnt==1 && pr[0]!=2 && !com[17]){
-		com[17]=true;ach[++achcnt]=17;
-		achpt+=(int)round(64.0/n);
-	}
-	if (pr[prcnt-1]>10 && !com[13]){
-		com[13]=true;ach[++achcnt]=13;
-		achpt+=(int)round(32.0/n);
-	}
-	if (pr[prcnt-1]>50 && !com[14]){
-		com[14]=true;ach[++achcnt]=14;
-		achpt+=(int)round(128.0/n);
-	}
-	if (pr[prcnt-1]>100 && !com[15]){
-		com[15]=true;ach[++achcnt]=15;
-		achpt+=(int)round(512.0/n);
-	}
-	if (pr[prcnt-1]>200 && !com[16]){
-		com[16]=true;ach[++achcnt]=16;
-		achpt+=(int)round(2048.0/n);
-	}
-	if (n>=8 && !com[12]){
-		com[12]=true;ach[++achcnt]=12;
-		achpt-=256;
-	}
-	if (n==2 && score>=100 && !com[11]){
-		com[11]=true;ach[++achcnt]=11;
-		achpt+=256;
-	}
-	for (int i=1;i<=n;i++){
-		for (int j=1;j<=n;j++){
-			if (num[i][j]==32 && !com[0]){
-				com[0]=true;ach[++achcnt]=0;
-				achpt+=(int)round(64.0/(n*n*n));
-			}
-			if (num[i][j]==128 && !com[1]){
-				com[1]=true;ach[++achcnt]=1;
-				achpt+=(int)round(256.0/(n*n*n));
-			}
-			if (num[i][j]==512 && !com[2]){
-				com[2]=true;ach[++achcnt]=2;
-				achpt+=(int)round(2048.0/(n*n*n));
-			}
-			if (num[i][j]==2048 && !com[3]){
-				com[3]=true;ach[++achcnt]=3;
-				achpt+=(int)round(16384.0/(n*n*n));
-			}
-			if (num[i][j]==1534 && !com[24]){
-				com[24]=true;ach[++achcnt]=24;
-				achpt+=2100000000;
-			}
-		}
-	}
-	cout<<"Achievement Point:"<<achpt<<"\n\n";
-	cout<<"Got Achievement:";
-	if (achcnt!=0) cout<<"\n";
-	else cout<<" None\n";
-	for (int i=1;i<=achcnt;i++){
-		cout<<chengjiu[ach[i]]<<"\n";
-	}
-	achcnt=0;
-}
 void PrintStatus(){
 	cout<<"Seeds:";
 	for (int i=0;i<prcnt;i++){
@@ -206,18 +88,6 @@ void PrintStatus(){
 		}
 	}
 	if (sumx==0) cout<<" None.";
-	if (sumx>=2 && !com[18]){
-		com[18]=true;ach[++achcnt]=18;
-		achpt+=(int)round(128.0/n);
-	}
-	if (sumx>=3 && !com[19]){
-		com[19]=true;ach[++achcnt]=19;
-		achpt+=(int)round(512.0/n);
-	}
-	if (sumx>=4 && !com[20]){
-		com[20]=true;ach[++achcnt]=20;
-		achpt+=(int)round(2048.0/n);
-	}
 	cout<<"\nUnlocked:";sumx=0;
 	for (int i=1;i<=adcnt;i++){
 		if (ad[i]!=0){
@@ -226,21 +96,7 @@ void PrintStatus(){
 		}
 	}
 	if (sumx==0) cout<<" None.";
-	if (sumx>=2 && !com[21]){
-		com[21]=true;ach[++achcnt]=21;
-		achpt+=(int)round(128.0/n);
-	}
-	if (sumx>=3 && !com[22]){
-		com[22]=true;ach[++achcnt]=22;
-		achpt+=(int)round(512.0/n);
-	}
-	if (sumx>=4 && !com[23]){
-		com[23]=true;ach[++achcnt]=23;
-		achpt+=(int)round(2048.0/n);
-	}
 	elicnt=adcnt=0;
-	cout<<"\n";
-	Achievements();
 	memset(eli,0,sizeof(eli));
 	memset(ad,0,sizeof(ad));
 }
