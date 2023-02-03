@@ -1,2 +1,2 @@
-# 2048-family
-2048 series remade
+## 2048-Family
+2048 series remade by GongHJ
