@@ -16,7 +16,18 @@ using namespace std;
 int pr[10010]={2},prcnt=1,show0=0;
 int num[10][10],score,n;
 int ad[10010],adcnt,eli[10010],elicnt;
+bool highlight_merge[10][10],highlight;
 set<int>s;
+void gotoxy(short x,short y){
+    COORD coord={y,x};
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),coord);
+}
+void setCursorStatus(bool state){
+	CONSOLE_CURSOR_INFO cursor;
+	cursor.bVisible=state;
+	cursor.dwSize=1;
+	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),&cursor);
+}
 void setFontColor(int ForgC,int BackC){
 	WORD wColor=((BackC&0x0F)<<4)+(ForgC&0x0F);
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),wColor);
@@ -34,7 +45,9 @@ void GameOver(){
 	while (true);
 }
 void ClearScreen(){
-	system("cls");
+	gotoxy(0,0);
+	cout<<"                             \n                             \n                             \n                             \n                             \n                             \n                             \n                             \n                             \n                             \n";
+	gotoxy(0,0);
 }
 int getLen(int nn){
 	if (nn==0) return 1;
@@ -54,6 +67,41 @@ int getMaxLen(){
 	}
 	return retval;
 }
+bool isPrime(int k){
+	if (k<2) return false;
+	if (k==2) return true;
+	for (int i=2;i<=sqrt(k);i++){
+		if (!(k%i)) return false;
+	}
+	return true;
+}
+void fact(int k){
+	cout<<k;
+	if (isPrime(k)){
+		cout<<" is a prime.\n";
+		return;
+	}
+	bool flag=true;
+	int kkksc03=2;
+	cout<<"=";
+	while (k>1){
+		if (!isPrime(kkksc03)){
+			kkksc03++;
+			continue;
+		}
+		if (k%kkksc03){
+			kkksc03++;
+			continue;
+		}
+		k/=kkksc03;
+		if (!flag){
+			cout<<"*";
+		}
+		flag=false;
+		cout<<kkksc03;
+	}
+	cout<<"\n";
+}
 void PrintStatus(){
 	cout<<"Seeds:";
 	for (int i=0;i<prcnt;i++){
@@ -72,9 +120,16 @@ void PrintStatus(){
 				else if (show0==1) cout<<setw(maxlen+1)<<num[i][j];
 			}
 			else{
-				if (show0==2) setFontColor(15,0);
-				cout<<setw(maxlen+1)<<num[i][j];
-				if (show0==2) setFontColor(7,0);
+				if (highlight_merge[i][j] && highlight){
+					setFontColor(14,0);
+					cout<<setw(maxlen+1)<<num[i][j];
+					setFontColor(7,0);
+				}
+				else{
+					if (show0==2) setFontColor(15,0);
+					cout<<setw(maxlen+1)<<num[i][j];
+					if (show0==2) setFontColor(7,0);
+				}
 			}
 		}
 		cout<<"\n";
@@ -99,6 +154,16 @@ void PrintStatus(){
 	elicnt=adcnt=0;
 	memset(eli,0,sizeof(eli));
 	memset(ad,0,sizeof(ad));
+	set<int>s;
+	for (int i=1;i<=n;i++){
+		for (int j=1;j<=n;j++){
+			if (num[i][j]!=0) s.insert(num[i][j]);
+		}
+	}
+	cout<<"\n";
+	// for (auto k:s){
+	// 	fact(k);
+	// }
 }
 void init(){
 	system("color 07");
@@ -106,6 +171,11 @@ void init(){
 	memset(num,0,sizeof(num));
 	s.insert(2);cout<<"Input grid size(2-9):";
 	cin>>n;srand(int(time(0)));
+	cout<<"Highlight mergable numbers?(0/1):";
+	cin>>highlight;
+	gotoxy(0,0);
+	for (int i=1;i<=100;i++) cout<<"                                                                                                                              \n";
+	gotoxy(0,0);
 }
 void genNum(Position pos,int a){
 	num[pos.x][pos.y]=a;
@@ -145,6 +215,53 @@ bool canMerge(int num1,int num2){
 	if (num1<=1 || num2<=1) return false;
 	else if (num1%num2==0 || num2%num1==0) return true;
 	else return false;
+}
+void highlightIt(){
+	memset(highlight_merge,0,sizeof(highlight_merge));
+	for (int i=1;i<=n;i++){
+		vector<int>v;
+		bool flag[10];
+		memset(flag,0,sizeof(flag));
+		v.clear();
+		for (int j=1;j<=n;j++){
+			if (num[i][j]>1) v.push_back(j);
+		}
+		if (v.size()>=2){
+			for (int j=0;j<v.size()-1;j++){
+				if (canMerge(num[i][v[j]],num[i][v[j+1]])){
+					flag[v[j]]=flag[v[j+1]]=1;
+				}
+			}
+			for (int j=1;j<=n;j++){
+				highlight_merge[i][j]=max(highlight_merge[i][j],flag[j]);
+			}
+		}
+	}
+	for (int i=1;i<=n;i++){
+		vector<int>v;
+		bool flag[10];
+		memset(flag,0,sizeof(flag));
+		v.clear();
+		for (int j=1;j<=n;j++){
+			if (num[j][i]>1) v.push_back(j);
+		}
+		if (v.size()>=2){
+			for (int j=0;j<v.size()-1;j++){
+				if (canMerge(num[v[j]][i],num[v[j+1]][i])){
+					flag[v[j]]=flag[v[j+1]]=1;
+				}
+			}
+			for (int j=1;j<=n;j++){
+				highlight_merge[j][i]=max(highlight_merge[j][i],flag[j]);
+			}
+		}
+	}
+	// for (int i=1;i<=n;i++){
+	// 	for (int j=1;j<=n;j++){
+	// 		cout<<highlight_merge[i][j];
+	// 	}
+	// 	cout<<endl;
+	// }
 }
 bool canAct(){
 	for (int i=1;i<=n;i++){
@@ -199,13 +316,6 @@ bool act(int way){
 		}
 	}
 	return false;
-}
-bool isPrime(int nn){
-	if (nn<2) return false;
-	for (int i=2;i<=sqrt(nn);i++){
-		if (nn%i==0) return false;
-	}
-	return true;
 }
 vector<int> spl(int nn){
 	vector<int>sp;int p=2;
@@ -264,11 +374,13 @@ void PrimeProcess(){
 	elicnt=unique(eli+1,eli+elicnt+1)-(eli+1);
 }
 int main(){
+	setCursorStatus(0);
 	init();if (n<2 || n>9) return 0;
 	genNum(getRDP().second,getRDPrime());
 	genNum(getRDP().second,getRDPrime());
 	while (true){
 		ClearScreen();
+		highlightIt();
 		PrintStatus();
 		if (!canAct()) GameOver();
 		bool modified=false;
