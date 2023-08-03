@@ -18,6 +18,7 @@ int num[10][10],score,n;
 int ad[10010],adcnt,eli[10010],elicnt;
 bool highlight_merge[10][10],highlight;
 set<int>s;
+mt19937 eng;
 void gotoxy(short x,short y){
     COORD coord={y,x};
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),coord);
@@ -170,7 +171,7 @@ void init(){
 	cout<<"Show 0?(0=no/1=yes/2=grey):";cin>>show0;
 	memset(num,0,sizeof(num));
 	s.insert(2);cout<<"Input grid size(2-9):";
-	cin>>n;srand(int(time(0)));
+	cin>>n;eng.seed(time(0));
 	cout<<"Highlight mergable numbers?(0/1):";
 	cin>>highlight;
 	gotoxy(0,0);
@@ -193,10 +194,12 @@ pair<bool,Position> getRDP(){
 		Position p;
 		return make_pair(false,p);
 	}
-	return make_pair(true,v[rand()%v.size()]);
+	uniform_int_distribution<int>uid(0,v.size()-1);
+	return make_pair(true,v[uid(eng)]);
 }
 int getRDPrime(){
-	return pr[rand()%prcnt];
+	uniform_int_distribution<int>uid(0,prcnt-1);
+	return pr[uid(eng)];
 }
 void rotate(){
 	int tempnum[10][10];
@@ -227,7 +230,7 @@ void highlightIt(){
 			if (num[i][j]>1) v.push_back(j);
 		}
 		if (v.size()>=2){
-			for (int j=0;j<v.size()-1;j++){
+			for (int j=0;j<(int)v.size()-1;j++){
 				if (canMerge(num[i][v[j]],num[i][v[j+1]])){
 					flag[v[j]]=flag[v[j+1]]=1;
 				}
@@ -246,7 +249,7 @@ void highlightIt(){
 			if (num[j][i]>1) v.push_back(j);
 		}
 		if (v.size()>=2){
-			for (int j=0;j<v.size()-1;j++){
+			for (int j=0;j<(int)v.size()-1;j++){
 				if (canMerge(num[v[j]][i],num[v[j+1]][i])){
 					flag[v[j]]=flag[v[j+1]]=1;
 				}
@@ -393,7 +396,7 @@ int main(){
 		if (ch=='j' || ch=='J') modified=act(2);
 		if (ch=='k' || ch=='K') modified=act(0);
 		if (ch=='l' || ch=='L') modified=act(3);
-		if ((int)ch==-32){
+		if ((int)ch==-32 || (int)ch==0){
 			char ch=getch();
 			if ((int)ch==72) modified=act(0);
 			if ((int)ch==75) modified=act(1);
