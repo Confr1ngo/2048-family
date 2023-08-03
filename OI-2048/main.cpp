@@ -6,6 +6,7 @@
 using namespace std;
 int show0,num[10][10],score,scoreprev,n,col;
 bool llexpl=false;
+mt19937 eng;
 void setFontColor(int ForgC,int BackC){
 	WORD wColor=((BackC&0x0F)<<4)+(ForgC&0x0F);
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),wColor);
@@ -110,7 +111,7 @@ void init(){
 	memset(num,0,sizeof(num));
 	cout<<"Input grid size(2-9):";
 	cin>>n;cout<<"Colored or not?(0/1)";
-	cin>>col;srand(signed(time(0)));
+	cin>>col;eng.seed(time(0));
 }
 void genNum(Position pos,int a){
 	num[pos.x][pos.y]=a;
@@ -128,7 +129,8 @@ pair<bool,Position> getRDP(){
 		Position p;
 		return make_pair(false,p);
 	}
-	return make_pair(true,v[rand()%v.size()]);
+	uniform_int_distribution<int>uid(0,v.size()-1);
+	return make_pair(true,v[uid(eng)]);
 }
 void rotate(){
 	int tempnum[10][10];
@@ -257,7 +259,8 @@ bool act(int way){
 	return false;
 }
 int getRDNum(){
-    int a=rand()%100+1;
+	uniform_int_distribution<int>uid(1,100);
+    int a=uid(eng);
     if (a<=70) return 2;
     if (a<=90) return 4;
     if (a<=97) return 1;
@@ -282,7 +285,7 @@ signed main(){
 		if (ch=='j' || ch=='J') modified=act(2);
 		if (ch=='k' || ch=='K') modified=act(0);
 		if (ch=='l' || ch=='L') modified=act(3);
-		if ((int)ch==-32){
+		if ((int)ch==-32 || (int)ch==0){
 			char ch=getch();
 			if ((int)ch==72) modified=act(0);
 			if ((int)ch==75) modified=act(1);
