@@ -3,6 +3,8 @@
 #include<conio.h>
 using namespace std;
 int show0,num[10][10],score,n;
+bool highlight_merge[10][10],highlight;
+mt19937 eng;
 struct Position{
 	int x,y;
 	Position(){x=y=0;}
@@ -11,6 +13,16 @@ struct Position{
 		x=p.x;y=p.y;return *this;
 	}
 };
+void gotoxy(short x,short y){
+    COORD coord={y,x};
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),coord);
+}
+void setCursorStatus(bool state){
+	CONSOLE_CURSOR_INFO cursor;
+	cursor.bVisible=state;
+	cursor.dwSize=1;
+	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),&cursor);
+}
 void setFontColor(int ForgC,int BackC){
 	WORD wColor=((BackC&0x0F)<<4)+(ForgC&0x0F);
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),wColor);
@@ -20,7 +32,9 @@ void GameOver(){
 	while (true);
 }
 void ClearScreen(){
-	system("cls");
+	gotoxy(0,0);
+	cout<<"                             \n                             \n                             \n                             \n                             \n                             \n                             \n                             \n                             \n                             \n";
+	gotoxy(0,0);
 }
 int getLen(int nn){
 	if (nn==0) return 1;
@@ -41,7 +55,7 @@ int getMaxLen(){
 	return retval;
 }
 void PrintStatus(){
-	cout<<"\nScore: "<<score<<"\n";
+	cout<<"Score: "<<score<<"\n";
 	int maxlen=getMaxLen();
 	for (int i=1;i<=n;i++){
 		for (int j=1;j<=n;j++){
@@ -54,9 +68,16 @@ void PrintStatus(){
 				else if (show0==1) cout<<setw(maxlen+1)<<num[i][j];
 			}
 			else{
-				if (show0==2) setFontColor(15,0);
-				cout<<setw(maxlen+1)<<num[i][j];
-				if (show0==2) setFontColor(7,0);
+				if (highlight_merge[i][j] && highlight){
+					setFontColor(14,0);
+					cout<<setw(maxlen+1)<<num[i][j];
+					setFontColor(7,0);
+				}
+				else{
+					if (show0==2) setFontColor(15,0);
+					cout<<setw(maxlen+1)<<num[i][j];
+					if (show0==2) setFontColor(7,0);
+				}
 			}
 		}
 		cout<<"\n";
@@ -67,7 +88,12 @@ void init(){
 	cout<<"Show 0?(0=no/1=yes/2=grey):";cin>>show0;
 	memset(num,0,sizeof(num));
 	cout<<"Input grid size(2-9):";
-	cin>>n;srand(int(time(0)));
+	cin>>n;eng.seed(time(0));
+	cout<<"Highlight mergable numbers?(0/1):";
+	cin>>highlight;
+	gotoxy(0,0);
+	for (int i=1;i<=100;i++) cout<<"                                                                                                                              \n";
+	gotoxy(0,0);
 }
 void genNum(Position pos,int a){
 	num[pos.x][pos.y]=a;
@@ -85,7 +111,8 @@ pair<bool,Position> getRDP(){
 		Position p;
 		return make_pair(false,p);
 	}
-	return make_pair(true,v[rand()%v.size()]);
+	uniform_int_distribution<int>uid(0,v.size()-1);
+	return make_pair(true,v[uid(eng)]);
 }
 void rotate(){
 	int tempnum[10][10];
@@ -104,6 +131,47 @@ bool canMerge(int num1,int num2){
 	if (num1<=1 || num2<=1) return false;
 	else if (num1==num2) return true;
 	else return false;
+}
+void highlightIt(){
+	memset(highlight_merge,0,sizeof(highlight_merge));
+	for (int i=1;i<=n;i++){
+		vector<int>v;
+		bool flag[10];
+		memset(flag,0,sizeof(flag));
+		v.clear();
+		for (int j=1;j<=n;j++){
+			if (num[i][j]>1) v.push_back(j);
+		}
+		if (v.size()>=2){
+			for (int j=0;j<(int)v.size()-1;j++){
+				if (canMerge(num[i][v[j]],num[i][v[j+1]])){
+					flag[v[j]]=flag[v[j+1]]=1;
+				}
+			}
+			for (int j=1;j<=n;j++){
+				highlight_merge[i][j]=max(highlight_merge[i][j],flag[j]);
+			}
+		}
+	}
+	for (int i=1;i<=n;i++){
+		vector<int>v;
+		bool flag[10];
+		memset(flag,0,sizeof(flag));
+		v.clear();
+		for (int j=1;j<=n;j++){
+			if (num[j][i]>1) v.push_back(j);
+		}
+		if (v.size()>=2){
+			for (int j=0;j<(int)v.size()-1;j++){
+				if (canMerge(num[v[j]][i],num[v[j+1]][i])){
+					flag[v[j]]=flag[v[j+1]]=1;
+				}
+			}
+			for (int j=1;j<=n;j++){
+				highlight_merge[j][i]=max(highlight_merge[j][i],flag[j]);
+			}
+		}
+	}
 }
 bool canAct(){
 	for (int i=1;i<=n;i++){
@@ -159,7 +227,8 @@ bool act(int way){
 	return false;
 }
 int randomGen(){
-    int t=rand()%100+1;
+	uniform_int_distribution<int>uid(1,100);
+    int t=uid(eng);
     if (t<=75) return 2;
     else return 4;
 }
@@ -169,6 +238,7 @@ int main(){
 	genNum(getRDP().second,2);
 	while (true){
 		ClearScreen();
+		highlightIt();
 		PrintStatus();
 		if (!canAct()) GameOver();
 		bool modified=false;
@@ -181,7 +251,7 @@ int main(){
 		if (ch=='j' || ch=='J') modified=act(2);
 		if (ch=='k' || ch=='K') modified=act(0);
 		if (ch=='l' || ch=='L') modified=act(3);
-		if ((int)ch==-32){
+		if ((int)ch==-32 || (int)ch==0){
 			char ch=getch();
 			if ((int)ch==72) modified=act(0);
 			if ((int)ch==75) modified=act(1);
