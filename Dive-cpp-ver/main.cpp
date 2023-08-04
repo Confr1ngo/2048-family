@@ -38,9 +38,17 @@ struct Position{
 		x=p.x;y=p.y;return *this;
 	}
 };
-void GameOver(){
-	cout<<"Game Over.";
-	getch();exit(114514);
+bool GameOver(){
+	cout<<"Game Over. Again? (Y(Enter)/N)";
+	char ch;
+	while (true){
+		ch=getch();
+		if (ch=='n' || ch=='N') return true;
+		if (ch=='\n' || ch=='\r') return false;
+		if (ch=='y' || ch=='Y') return false;
+	}
+	const bool what_the_hell=false;
+	return what_the_hell;
 }
 void ClearScreen(){
 	gotoxy(0,0);
@@ -116,13 +124,13 @@ void PrintStatus(){
 	ad.clear();el.clear();cout<<"\n";
 }
 void init(){
-	system("color 07");
-	cout<<"Show 0?(0=no/1=yes/2=grey):";cin>>show0;
+	system("color 07");score=0;
 	memset(num,0,sizeof(num));
-	v.emplace_back(2);cout<<"Input grid size(2-9):";
-	cin>>n;eng.seed(time(0));
-	cout<<"Highlight mergable numbers?(0/1):";
-	cin>>highlight;
+	eng.seed(time(0));v.clear();
+	v.emplace_back(2);
+	cout<<"Show 0?(0=no/1=yes/2=grey):";cin>>show0;
+	cout<<"Input grid size(2-9):";cin>>n;
+	cout<<"Highlight mergable numbers?(0/1):";cin>>highlight;
 	system("cls");
 }
 void genNum(Position pos,int a){
@@ -133,7 +141,7 @@ pair<bool,Position> getRDP(){
 	for (int i=1;i<=n;i++){
 		for (int j=1;j<=n;j++){
 			if (num[i][j]==0){
-				v.push_back(Position(i,j));
+				v.emplace_back(Position(i,j));
 			}
 		}
 	}
@@ -174,7 +182,7 @@ void highlightIt(){
 		memset(flag,0,sizeof(flag));
 		v.clear();
 		for (int j=1;j<=n;j++){
-			if (num[i][j]>1) v.push_back(j);
+			if (num[i][j]>1) v.emplace_back(j);
 		}
 		if (v.size()>=2){
 			for (int j=0;j<(int)v.size()-1;j++){
@@ -193,7 +201,7 @@ void highlightIt(){
 		memset(flag,0,sizeof(flag));
 		v.clear();
 		for (int j=1;j<=n;j++){
-			if (num[j][i]>1) v.push_back(j);
+			if (num[j][i]>1) v.emplace_back(j);
 		}
 		if (v.size()>=2){
 			for (int j=0;j<(int)v.size()-1;j++){
@@ -265,7 +273,7 @@ vector<int> spl(int nn){
 	vector<int>sp;int p=2;
 	while (nn>1){
 		if (nn%p==0){
-			nn/=p;sp.push_back(p);
+			nn/=p;sp.emplace_back(p);
 			continue;
 		}
 		p++;while (!isPrime(p)) p++;
@@ -276,7 +284,7 @@ void addPrime(int nn){
 	if (nn<2) return;
 	vector<int>vv=spl(nn);
 	for (int i=0;i<(int)vv.size();i++){
-		v.push_back(vv[i]);
+		v.emplace_back(vv[i]);
 	}
 }
 void PrimeProcess(){
@@ -294,25 +302,27 @@ void PrimeProcess(){
 	for (auto k:v) now.insert(k);
 	for (auto k:prev){
 		if (now.count(k)==0){
-			el.push_back(k);
+			el.emplace_back(k);
 		}
 	}
 	for (auto k:now){
 		if (prev.count(k)==0){
-			ad.push_back(k);
+			ad.emplace_back(k);
 		}
 	}
 }
-int main(){
-	setCursorStatus(0);
-	init();if (n<2 || n>9) return 0;
+void play(){
+	init();if (n<2 || n>9) exit(114514);
 	genNum(getRDP().second,2);
 	genNum(getRDP().second,2);
 	while (true){
 		ClearScreen();
 		highlightIt();
 		PrintStatus();
-		if (!canAct()) GameOver();
+		if (!canAct()){
+			if (GameOver()) exit(114514);
+			system("cls");break;
+		}
 		bool modified=false;
 		char ch=getch();
 		if (ch=='w' || ch=='W') modified=act(0);
@@ -336,5 +346,9 @@ int main(){
 			if (retval.first==true) genNum(retval.second,getRDPrime());
 		}
 	}
+}
+int main(){
+	setCursorStatus(0);
+	while (true) play();
 	return 0;
 }
