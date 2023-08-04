@@ -73,33 +73,6 @@ bool isPrime(int k){
 	}
 	return true;
 }
-void fact(int k){
-	cout<<k;
-	if (isPrime(k)){
-		cout<<" is a prime.\n";
-		return;
-	}
-	bool flag=true;
-	int kkksc03=2;
-	cout<<"=";
-	while (k>1){
-		if (!isPrime(kkksc03)){
-			kkksc03++;
-			continue;
-		}
-		if (k%kkksc03){
-			kkksc03++;
-			continue;
-		}
-		k/=kkksc03;
-		if (!flag){
-			cout<<"*";
-		}
-		flag=false;
-		cout<<kkksc03;
-	}
-	cout<<"\n";
-}
 void PrintStatus(){
 	cout<<"Seeds:";
 	for (auto i:v) cout<<" "<<i;
@@ -233,12 +206,6 @@ void highlightIt(){
 			}
 		}
 	}
-	// for (int i=1;i<=n;i++){
-	// 	for (int j=1;j<=n;j++){
-	// 		cout<<highlight_merge[i][j];
-	// 	}
-	// 	cout<<endl;
-	// }
 }
 bool canAct(){
 	for (int i=1;i<=n;i++){
@@ -350,7 +317,7 @@ int main(){
 		char ch=getch();
 		if (ch=='w' || ch=='W') modified=act(0);
 		if (ch=='a' || ch=='A') modified=act(1);
-		if (ch=='v' || ch=='S') modified=act(2);
+		if (ch=='s' || ch=='S') modified=act(2);
 		if (ch=='d' || ch=='D') modified=act(3);
 		if (ch=='h' || ch=='H') modified=act(1);
 		if (ch=='j' || ch=='J') modified=act(2);
