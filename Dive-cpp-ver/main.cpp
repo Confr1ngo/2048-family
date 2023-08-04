@@ -3,7 +3,6 @@
 // | .` / _ \ | '_ \ || / _` (_-< | ' \/ -_) '_/ -_)_ 
 // |_|\_\___/ |_.__/\_,_\__, /__/ |_||_\___|_| \___(_)
 //                      |___/                         
-
 //  ___  _           ___         ___               _  _    _ 
 // |   \(_)_ _____  | _ )_  _   / __|___ _ _  __ _| || |_ | |
 // | |) | \ V / -_) | _ \ || | | (_ / _ \ ' \/ _` | __ | || |
@@ -13,11 +12,9 @@
 #include<windows.h>
 #include<conio.h>
 using namespace std;
-int pr[10010]={2},prcnt=1,show0=0;
-int num[10][10],score,n;
-int ad[10010],adcnt,eli[10010],elicnt;
+int show0=0,num[10][10],score,n;
 bool highlight_merge[10][10],highlight;
-set<int>s;
+vector<int>v,el,ad;
 mt19937 eng;
 void gotoxy(short x,short y){
     COORD coord={y,x};
@@ -105,9 +102,7 @@ void fact(int k){
 }
 void PrintStatus(){
 	cout<<"Seeds:";
-	for (int i=0;i<prcnt;i++){
-		cout<<" "<<pr[i];
-	}
+	for (auto i:v) cout<<" "<<i;
 	cout<<"\nScore: "<<score<<"\n";
 	int maxlen=getMaxLen();
 	for (int i=1;i<=n;i++){
@@ -135,48 +130,27 @@ void PrintStatus(){
 		}
 		cout<<"\n";
 	}
-	int sumx=0;
 	cout<<"Eliminated:";
-	for (int i=1;i<=elicnt;i++){
-		if (eli[i]!=0){
-			sumx++;
-			cout<<" "<<eli[i];
-		}
+	for (int i=0;i<(int)el.size();i++){
+		cout<<" "<<el[i];
 	}
-	if (sumx==0) cout<<" None.";
-	cout<<"\nUnlocked:";sumx=0;
-	for (int i=1;i<=adcnt;i++){
-		if (ad[i]!=0){
-			sumx++;
-			cout<<" "<<ad[i];
-		}
+	if (el.size()==0) cout<<" None.";
+	cout<<"\nUnlocked:";
+	for (int i=0;i<(int)ad.size();i++){
+		cout<<" "<<ad[i];
 	}
-	if (sumx==0) cout<<" None.";
-	elicnt=adcnt=0;
-	memset(eli,0,sizeof(eli));
-	memset(ad,0,sizeof(ad));
-	set<int>s;
-	for (int i=1;i<=n;i++){
-		for (int j=1;j<=n;j++){
-			if (num[i][j]!=0) s.insert(num[i][j]);
-		}
-	}
-	cout<<"\n";
-	// for (auto k:s){
-	// 	fact(k);
-	// }
+	if (ad.size()==0) cout<<" None.";
+	ad.clear();el.clear();cout<<"\n";
 }
 void init(){
 	system("color 07");
 	cout<<"Show 0?(0=no/1=yes/2=grey):";cin>>show0;
 	memset(num,0,sizeof(num));
-	s.insert(2);cout<<"Input grid size(2-9):";
+	v.emplace_back(2);cout<<"Input grid size(2-9):";
 	cin>>n;eng.seed(time(0));
 	cout<<"Highlight mergable numbers?(0/1):";
 	cin>>highlight;
-	gotoxy(0,0);
-	for (int i=1;i<=100;i++) cout<<"                                                                                                                              \n";
-	gotoxy(0,0);
+	system("cls");
 }
 void genNum(Position pos,int a){
 	num[pos.x][pos.y]=a;
@@ -198,8 +172,8 @@ pair<bool,Position> getRDP(){
 	return make_pair(true,v[uid(eng)]);
 }
 int getRDPrime(){
-	uniform_int_distribution<int>uid(0,prcnt-1);
-	return pr[uid(eng)];
+	uniform_int_distribution<int>uid(0,v.size()-1);
+	return v[uid(eng)];
 }
 void rotate(){
 	int tempnum[10][10];
@@ -333,54 +307,40 @@ vector<int> spl(int nn){
 }
 void addPrime(int nn){
 	if (nn<2) return;
-	vector<int>v=spl(nn);
-	for (int i=0;i<(int)v.size();i++){
-		if (s.count(v[i])==0){
-			s.insert(v[i]);
-			prcnt++;pr[prcnt++]=v[i];
-			ad[++adcnt]=v[i];
-			sort(pr,pr+prcnt);
-			prcnt=unique(pr,pr+prcnt)-pr;
-		}
+	vector<int>vv=spl(nn);
+	for (int i=0;i<(int)vv.size();i++){
+		v.push_back(vv[i]);
 	}
 }
 void PrimeProcess(){
+	vector<int>v_prev=v;v.clear();
 	for (int i=1;i<=n;i++){
 		for (int j=1;j<=n;j++){
 			addPrime(num[i][j]);
 		}
 	}
-	sort(ad+1,ad+adcnt+1);
-	adcnt=unique(ad+1,ad+adcnt+1)-(ad+1);
-	for (int p=0;p<prcnt;p++){
-		bool flag=false;
-		for (int x=1;x<=n;x++){
-			for (int y=1;y<=n;y++){
-				if (num[x][y]>0){
-					vector<int>v=spl(num[x][y]);
-					for (int i=0;i<(int)v.size();i++){
-						if (v[i]==pr[p]) flag=true;
-					}
-				}
-			}
-		}
-		if (!flag){
-			s.erase(pr[p]);
-			eli[++elicnt]=pr[p];
-			for (int i=p+1;i<prcnt;i++){
-				pr[i-1]=pr[i];
-			}
-			prcnt--;
+	sort(v.begin(),v.end());
+	v.resize(unique(v.begin(),v.end())-v.begin());
+	set<int>prev;prev.clear();
+	set<int>now;now.clear();
+	for (auto k:v_prev) prev.insert(k);
+	for (auto k:v) now.insert(k);
+	for (auto k:prev){
+		if (now.count(k)==0){
+			el.push_back(k);
 		}
 	}
-	sort(eli+1,eli+elicnt+1);
-	elicnt=unique(eli+1,eli+elicnt+1)-(eli+1);
+	for (auto k:now){
+		if (prev.count(k)==0){
+			ad.push_back(k);
+		}
+	}
 }
 int main(){
 	setCursorStatus(0);
 	init();if (n<2 || n>9) return 0;
-	genNum(getRDP().second,getRDPrime());
-	genNum(getRDP().second,getRDPrime());
+	genNum(getRDP().second,2);
+	genNum(getRDP().second,2);
 	while (true){
 		ClearScreen();
 		highlightIt();
@@ -390,7 +350,7 @@ int main(){
 		char ch=getch();
 		if (ch=='w' || ch=='W') modified=act(0);
 		if (ch=='a' || ch=='A') modified=act(1);
-		if (ch=='s' || ch=='S') modified=act(2);
+		if (ch=='v' || ch=='S') modified=act(2);
 		if (ch=='d' || ch=='D') modified=act(3);
 		if (ch=='h' || ch=='H') modified=act(1);
 		if (ch=='j' || ch=='J') modified=act(2);
