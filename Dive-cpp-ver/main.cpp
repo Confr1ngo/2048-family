@@ -40,7 +40,7 @@ struct Position{
 };
 void GameOver(){
 	cout<<"Game Over.";
-	while (true);
+	getch();exit(114514);
 }
 void ClearScreen(){
 	gotoxy(0,0);
